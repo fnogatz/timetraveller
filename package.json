@@ -1,0 +1,42 @@
+{
+  "name": "timetraveller",
+  "version": "0.0.1",
+  "description": "Webservice to explore location- and time-based data like GTFS in an interactive way",
+  "main": "index.js",
+  "bin": "./bin/timetraveller",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node ./bin/timetraveller-server"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/fnogatz/timetraveller.git"
+  },
+  "keywords": [
+    "transportation",
+    "GTFS",
+    "zeitpunkt",
+    "location"
+  ],
+  "author": "Falco Nogatz <fnogatz@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/fnogatz/timetraveller/issues"
+  },
+  "homepage": "https://github.com/fnogatz/timetraveller",
+  "dependencies": {
+    "body-parser": "~1.12.0",
+    "char-spinner": "^1.0.1",
+    "commander": "^2.7.0",
+    "console-stamp": "^0.1.5",
+    "cookie-parser": "~1.3.4",
+    "debug": "~2.1.1",
+    "ejs": "~2.3.1",
+    "express": "~4.12.2",
+    "mongodb": "^1.4.34",
+    "morgan": "~1.5.1",
+    "node-uuid": "^1.4.3",
+    "serve-favicon": "~2.2.0",
+    "transportation": "^0.0.3"
+  }
+}
