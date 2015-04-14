@@ -1,101 +1,50 @@
 #!/usr/bin/env node
 
-require('console-stamp')(console, 'HH:MM:ss.l');
+require('console-stamp')(console, 'HH:MM:ss.l')
 
-var childProcess = require('child_process');
-var path = require('path');
-var spinner = require('char-spinner');
-var async = require('async');
-var program = require('commander');
-var MongoClient = require('mongodb').MongoClient;
-var uuid = require('node-uuid');
+var spinner = require('char-spinner')
+var program = require('commander')
 
+var Model = require('../lib/model')
 
 spinner();
 
-var config = require('../config.json');
-
-
 program
-  .usage('[options] <gtfs>')
-  .option('-d, --database <name>', 'Use this database (default: timetraveller)')
-  .option('-r, --random-database', 'Create random database')
-  .option('-c, --clean', 'Drop the database first')
+  .usage('[options] <id> <gtfs>')
+  .option('--clean', 'Drop the collection first')
   .option('--without-index', 'Import data without creating an index')
-  .parse(process.argv);
+  .parse(process.argv)
 
+var id = program.args[0]
+var dir = program.args[1]
 
-var dir = program.args[0];
-if (program.database === 'local') {
-  // Security fix
-  throw new Error('Database name must not be "local".');
-}
-program.database = program.database || 'timetraveller';
+var options = program
 
+var model = Model.getInstance()
+model.connect(function(err) {
+  if (err) {
+    throw err
+  }
 
-var url = config.database.mongodb.url;
-if (program.database) {
-  url = url.replace(/\/[^/]*$/, '/'+program.database);
-}
-
-
-// clean old database first
-if (program.clean) {
-  MongoClient.connect(url, function (err, db) {
-    if (err) { throw err; }
-
-    db.dropDatabase(function (err, res) {
-      if (err) { throw err; }
-      console.log('Dropped database '+program.database+'.');
-
-      db.close();
-      importData();
-    });
-  });
-}
-else {
-  importData();
-}
-
-
-function importData() {
-  var transportation = path.resolve(__dirname, '..', 'node_modules', 'transportation', 'bin', 'transportation');
-  var command = transportation+' -i 0 --mongo --date "2015-03-11" '+dir+' | mongoimport -d '+program.database+' -c lines';
-  childProcess.exec(command, function(err, data) {
-    if (err) { throw err; }
-    console.log('Imported into '+program.database+'.');
-    console.log(data);
-
-    if (program.withoutIndex) {
-      // finish
-    }
-    else {
-      createIndexes();
+  model.getMap(id, function(err, map) {
+    if (err) {
+      throw err
     }
 
-  });
-}
+    if (!map) {
+      throw new Error('ID '+id+' doesn\'t exist')
+    }
 
+    console.log('Start GTFS import for ID '+id)
 
-function createIndexes() {
-  MongoClient.connect(url, function (err, db) {
-    if (err) { throw err; }
+    map.importGTFS(dir, options, function(err) {
+      if (err) {
+        throw err
+      }
 
-    db.ensureIndex('lines', {
-      'loc.features.geometry': '2dsphere',
-      // 'loc.features.properties.time': 1 
-    }, function(err, indexName) {
-      if (err) { throw err; }
+      console.log('Finished GTFS import for ID '+id)
 
-      console.log('Index "'+indexName+'" created.');
-
-      db.close();
-    });
-  });
-}
-
-
-
-
-
-
+      model.close()
+    })
+  })
+})

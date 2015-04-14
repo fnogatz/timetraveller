@@ -6,4 +6,5 @@ program
   .version(require('../package.json').version)
   .command('server', 'Run server')
   .command('import', 'Import data')
+  .command('create', 'Create map')
   .parse(process.argv);

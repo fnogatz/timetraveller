@@ -1,0 +1,18 @@
+{
+  "transitmap": {
+    "name": "Transit Map",
+    "url": "http://a.tile2.opencyclemap.org/transport/{z}/{x}/{y}.png",
+    "attribution": [
+      "Kartendaten &copy; <a href=\"http://openstreetmap.org/\">OpenStreetMap</a>-Beitragende",
+      "OSM Transit Map"
+    ]
+  },
+  "hikebike": {
+    "name": "Hike and Bike Map",
+    "url": "http://toolserver.org/tiles/hikebike/{z}/{x}/{y}.png",
+    "attribution": [
+      "Kartendaten &copy; <a href=\"http://openstreetmap.org/\">OpenStreetMap</a>-Beitragende",
+      "<a href=\"http://hikebikemap.de/\">Hikebikemap.de</a>"
+    ]
+  }
+}
