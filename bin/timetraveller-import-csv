@@ -10,16 +10,15 @@ var Model = require('../lib/model')
 spinner();
 
 program
-  .usage('[options] <id> <gtfs>')
+  .usage('[options] <id> <csv>')
   .option('--clean', 'Drop the collection first')
   .option('--without-index', 'Import data without creating an index')
-  .option('--date <date>', 'Import this date')
   .parse(process.argv)
 
 var id = program.args[1]
-var dir = program.args[0]
+var filename = program.args[0]
 
-program.date = program.date || (new Date()).toISOString().slice(0,10)
+var options = program
 
 var model = Model.getInstance()
 model.connect(function(err) {
@@ -36,14 +35,14 @@ model.connect(function(err) {
       throw new Error('ID '+id+' doesn\'t exist')
     }
 
-    console.log('Start GTFS import for ID '+id)
+    console.log('Start CSV import for ID '+id)
 
-    map.importGTFS(dir, program, function(err) {
+    map.importCSV(filename, options, function(err) {
       if (err) {
         throw err
       }
 
-      console.log('Finished GTFS import for ID '+id)
+      console.log('Finished CSV import for ID '+id)
 
       model.close()
     })

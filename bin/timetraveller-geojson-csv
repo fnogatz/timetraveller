@@ -1,0 +1,118 @@
+#!/usr/bin/env node
+
+var spinner = require('char-spinner')
+var program = require('commander')
+var EJSON = require('mongodb-extended-json')
+var csv = require('../lib/csv')
+
+spinner();
+
+program
+  .usage('[options] <csv>')
+  .option('--split <points>', 'Manually split trajectories at number of points (default: 600)')
+  .option('--delimiter <char>', 'Column delimiter (default: ",")')
+  .option('--cols <columns>', 'List of columns (default: "id,date,lon,lat')
+  .option('--ignore <rows>', 'Ignore first rows (default: 0)')
+  .option('--lat <bounds>', 'Set bounds for latitude (default: "-90,90")')
+  .option('--lon <bounds>', 'Set bounds for longitude (default: "-180,180")')
+  .option('--eps <number>', 'Epsilon (default: 0.001)')
+  .option('-m, --mongo', 'Use MongoDB Extended JSON')
+  .option('-i, --indentation <spaces>', 'Set indentation level (default: 2)', parseInt)
+  .parse(process.argv)
+
+var filename = program.args[0]
+
+program.points = program.split || 600
+program.delimiter = program.delimiter || ','
+program.ignore = program.ignore || 0
+program.cols = program.cols || 'id,date,lon,lat'
+program.lat = program.lat || '-90,90'
+program.lon = program.lon || '-180,180'
+program.eps = parseFloat(program.eps) || 0.001
+program.columns = program.cols.split(/[,;]/)
+if (program.indentation === undefined) {
+  program.indentation = 2;
+}
+
+program.bounds = {
+  lat: program.lat.split(','),
+  lon: program.lon.split(',')
+}
+
+function print(obj) {
+  var stringify = program.mongo ? EJSON.stringify : JSON.stringify;
+
+  console.log(stringify(obj, null, Array(program.indentation+1).join(' ')));
+}
+
+function epsNear(a, b) {
+  return Math.abs(a-b) <= program.eps
+}
+
+csv(filename, program, function (rows) {
+  rows = rows.slice(program.ignore)
+
+  var rowsLength = rows.length
+  var chunk
+  var obj
+  var row, lon, lat, prevLon, prevLat, prevDate, point
+  var features = []
+
+  for (var i = 0; i < rowsLength; i++) {
+    row = rows[i]
+
+    lon = parseFloat(row.lon)
+    lat = parseFloat(row.lat)
+
+    if (lon < program.bounds.lon[0] || lon > program.bounds.lon[1]) {
+      continue
+    }
+    if (lat < program.bounds.lat[0] || lat > program.bounds.lat[1]) {
+      continue
+    }
+
+    if (row.date === prevDate) {
+      continue
+    }
+
+    if (epsNear(lon, prevLon) && epsNear(lat, prevLat)) {
+      continue
+    }
+
+    point = {
+      type: 'Feature',
+      geometry: {
+        type: 'Point',
+        coordinates: [ lon, lat ]
+      },
+      properties: {
+        time: new Date(row.date)
+      }
+    }
+
+    features.push(point)
+    prevLon = lon
+    prevLat = lat
+    prevDate = row.date
+  }
+
+  var featuresLength = features.length
+  for (var i = 0; i < featuresLength; i += program.points) {
+    chunk = features.slice(i, i+program.points)
+
+    obj = {
+      _id: rows[0].id+'-'+i,
+      entities: {
+        taxi: {
+          id: rows[0].id
+        }
+      },
+      loc: {
+        type: 'FeatureCollection',
+        features: chunk
+      }
+    }
+
+    print(obj);
+  }
+})

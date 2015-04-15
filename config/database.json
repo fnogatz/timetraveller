@@ -2,6 +2,14 @@
   "connectors": {
     "mongodb": {
       "url": "mongodb://localhost:27017/timetraveller"
+    },
+    "mongodb2": {
+      "url": "mongodb://localhost:27017/timetraveller"
+    },
+    "mysql": {
+      "host": "localhost",
+      "user": "root",
+      "database": "timetraveller"
     }
   },
   "use": "mongodb"

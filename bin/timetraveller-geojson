@@ -3,6 +3,5 @@
 var program = require('commander');
 
 program
-  .command('gtfs', 'Import GTFS')
-  .command('csv', 'Import CSV')
+  .command('csv', 'Transform CSV into GeoJSON')
   .parse(process.argv);

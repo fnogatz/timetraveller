@@ -13,8 +13,14 @@ for (var key in tiles) {
 }
 var map = L.map('map')
 
+// TODO
 // Use Ulm
-map.setView([48.400833333333, 9.9872222222222], 16)
+if (window.location.pathname === '/m/Ulm') {
+  map.setView([48.400833333333, 9.9872222222222], 16)
+}
+else if (window.location.pathname === '/m/Peking') {
+  map.setView([39.92889, 116.38833], 16)
+}
 
 // Add default tile layer
 tileLayers[Object.keys(tileLayers)[0]].addTo(map)

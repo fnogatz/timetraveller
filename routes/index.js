@@ -49,8 +49,25 @@ router.get('/m/:slug', function (req, res, next) {
       return
     }
 
+    var maps = [
+      {
+        name: 'Nahverkehr in Ulm',
+        slug: 'Ulm'
+      },
+      {
+        name: 'Taxi in Peking',
+        slug: 'Peking'
+      }
+    ]
+    maps.forEach(function(map) {
+      if (map.slug === req.params.slug) {
+        map.active = true;
+      }
+    })
+
     res.render('map', {
-      map: map
+      map: map,
+      maps: maps
     })
   })
 })

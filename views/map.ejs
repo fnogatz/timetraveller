@@ -7,7 +7,7 @@
 
     <title>TimeTraveller</title>
 
-    <link href="/css/vendor/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -17,7 +17,7 @@
     <![endif]-->
 
     <link rel="stylesheet" href="/css/map.css" />
-    <link rel="stylesheet" href="/css/vendor/leaflet.css" />
+    <link rel="stylesheet" href="/css/leaflet.css" />
     <script src="/js/vendor/leaflet.js"></script>
     <script src="/js/vendor/Leaflet.MovingMarker.js"></script>
     <script src="/socket.io/socket.io.js"></script>
@@ -37,20 +37,25 @@
         </div>
         <div id="navbar" class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
-            <li class="active"><a href="#">Home</a></li>
-            <li><a href="#about">About</a></li>
+            <% maps.forEach(function(map) { %>
+            <li class="<%= (map.active ? 'active' : '') %>"><a href="/m/<%= map.slug %>"><%= map.name %></a></li>
+            <% }) %>
           </ul>
         </div><!--/.nav-collapse -->
       </div>
     </nav>
 
-    <div id="map" data-id="<%= map.id %>"></div>
+    <div id="map" data-id="<%= map.id %>" data-slug="<%= map.slug %>"></div>
 
     <nav class="navbar navbar-default navbar-fixed-bottom">
       <div class="container">
         <div class="navbar-collapse">
+        <a class="navbar-brand timetraveller-date" href="#" style="min-width:200px">TimeTraveller</a>
           <ul class="nav navbar-nav">
-            <li class="timetraveller-pause"><a href="#" class="btnPlay"><span class="glyphicon glyphicon-play"></span></a></li>
+            <li class="timetraveller-slower"><a href="#" class="btnPlay"><span class="glyphicon glyphicon-backward" aria-hidden="true"></span></a></li>
+            <li class="timetraveller-pause"><a href="#" class="btnPlay"><span class="glyphicon glyphicon-pause" aria-hidden="true"></span></a></li>
+            <li class="timetraveller-play"><a href="#" class="btnPlay"><span class="glyphicon glyphicon-play" aria-hidden="true"></span></a></li>
+            <li class="timetraveller-faster"><a href="#" class="btnPlay"><span class="glyphicon glyphicon-forward" aria-hidden="true"></span></a></li>
           </ul>
         </div>
       </div>

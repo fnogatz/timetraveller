@@ -4,9 +4,11 @@
 function Timetraveller(map) {
   this.map = map
   this.id = document.getElementById('map').dataset.id
+  this.slug = document.getElementById('map').dataset.slug
   this.markers = {}
-  this.speed = 10
+  this._speed = 1
   this.paused = false
+  this._timestamp = Date.now()
 }
 
 Timetraveller.prototype.init = function initTimetraveller() {
@@ -62,7 +64,9 @@ Timetraveller.prototype.getBounds = function getBounds() {
 Timetraveller.prototype.update = function update() {
   this.socket.emit('get_trajectory_points', {
     id: this.id,
-    bounds: this.getBounds()
+    bounds: this.getBounds(),
+    timestamp: this._timestamp,
+    speed: this._speed
   })
 }
 
@@ -75,10 +79,10 @@ Timetraveller.prototype.pause = function pause() {
   this.paused = true
 }
 
-Timetraveller.prototype.play = function play() {
+Timetraveller.prototype.resume = function resume() {
   var markers = this.markers
   for (var id in markers) {
-    markers[id].marker.start()
+    markers[id].marker.resume()
   }
 
   this.paused = false
@@ -87,12 +91,24 @@ Timetraveller.prototype.play = function play() {
 Timetraveller.prototype.setSpeed = function setSpeed(speed) {
   speed = speed || 1
 
-  if (speed === this.speed) {
+  if (speed === this._speed) {
     return
   }
 
-  this.speed = speed
-  this.rerender()
+  for (var id in this.markers) {
+    this.markers[id].marker.setSpeed(speed)
+  }
+
+  this._speed = speed
+}
+
+Timetraveller.prototype.setDate = function setDate(date) {
+  if (date instanceof Date) {
+    this._timestamp = date.getTime()
+  }
+  else if (typeof date === 'number') {
+    this._timestamp = date
+  }
 }
 
 Timetraveller.prototype.start = function start() {
@@ -107,36 +123,28 @@ Timetraveller.prototype.registerButtons = function registerButtons() {
       self.pause()
     })
   })
-}
 
-Timetraveller.prototype.rerender = function rerender() {
-  var self = this
+  Array.prototype.forEach.call(document.querySelectorAll('.timetraveller-play'), function(el) {
+    el.addEventListener('click', function() {
+      self.resume()
+    })
+  })
 
-  // delete old markers and add new ones
-  var m
-  for (var id in self.markers) {
-    m = self.markers[id]
-
-    // remove
-    self.map.removeLayer(m.marker)
-
-    // add
-    // TODO
-  }
+  Array.prototype.forEach.call(document.querySelectorAll('.timetraveller-date'), function(el) {
+    //el.textContent = 
+  })
 }
 
 Timetraveller.prototype.createMarker = function createMarker(data) {
   var self = this
 
-  var durations = data.durations
-  if (self.speed !== 1) {
-    durations = durations.map(function(duration) {
-      return duration / self.speed
-    })
-  }
+  var marker = L.Marker.movingMarker(data.points, data.durations, {
+    speed: self._speed
+  })
 
-  var marker = L.Marker.movingMarker(data.points, durations)
-  marker.bindPopup(data.id)
+  var popupText = this.getPopupText(data)
+
+  marker.bindPopup(popupText)
   
   marker.addTo(self.map)
 
@@ -150,4 +158,18 @@ Timetraveller.prototype.createMarker = function createMarker(data) {
   }
 
   return marker
+}
+
+Timetraveller.prototype.getPopupText = function getPopupText(data) {
+  if (this.slug === 'Ulm') {
+    var text = '<b>Linie '+data.entities.route.shortName+'</b>'
+    if (data.entities.route.longName) {
+      text += '<br>'+data.entities.route.longName
+    }
+    return text
+  }
+  else if (this.slug === 'Peking') {
+    return 'Taxi '+data.id
+  }
+  return data.id
 }

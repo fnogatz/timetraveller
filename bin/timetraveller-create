@@ -42,7 +42,7 @@ model.connect(function(err) {
       throw err
     }
 
-    console.log('Map created (ID='+id+')')
+    console.log('Map created (ID= '+id+')')
 
     model.close()
   })
