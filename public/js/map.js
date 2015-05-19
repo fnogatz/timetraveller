@@ -15,7 +15,7 @@ var map = L.map('map')
 
 // TODO
 // Use Ulm
-if (window.location.pathname === '/m/Ulm') {
+if (window.location.pathname.match(/\/m\/Ulm/)) {
   map.setView([48.400833333333, 9.9872222222222], 16)
 }
 else if (window.location.pathname === '/m/Peking') {

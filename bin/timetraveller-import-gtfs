@@ -16,8 +16,8 @@ program
   .option('--date <date>', 'Import this date')
   .parse(process.argv)
 
-var id = program.args[1]
-var dir = program.args[0]
+var id = program.args[0]
+var dir = program.args[1]
 
 program.date = program.date || (new Date()).toISOString().slice(0,10)
 

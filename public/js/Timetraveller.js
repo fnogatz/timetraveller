@@ -109,10 +109,22 @@ Timetraveller.prototype.setDate = function setDate(date) {
   else if (typeof date === 'number') {
     this._timestamp = date
   }
+
+  this.clear()
+  this.update()
 }
 
 Timetraveller.prototype.start = function start() {
   this.update()
+}
+
+Timetraveller.prototype.clear = function clear() {
+  var self = this
+
+  for (var id in self.markers) {
+    self.map.removeLayer(self.markers[id].marker)
+    delete self.markers[id]
+  }
 }
 
 Timetraveller.prototype.registerButtons = function registerButtons() {
@@ -161,7 +173,7 @@ Timetraveller.prototype.createMarker = function createMarker(data) {
 }
 
 Timetraveller.prototype.getPopupText = function getPopupText(data) {
-  if (this.slug === 'Ulm') {
+  if (this.slug.match(/Ulm/)) {
     var text = '<b>Linie '+data.entities.route.shortName+'</b>'
     if (data.entities.route.longName) {
       text += '<br>'+data.entities.route.longName
