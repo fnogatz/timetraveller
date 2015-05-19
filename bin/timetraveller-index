@@ -1,0 +1,47 @@
+#!/usr/bin/env node
+
+require('console-stamp')(console, 'HH:MM:ss.l')
+
+var spinner = require('char-spinner')
+var program = require('commander')
+var Parser = require('newline-json').Parser
+
+var Model = require('../lib/model')
+var parser = new Parser()
+
+spinner()
+
+program
+  .usage('<id>')
+  .parse(process.argv)
+
+var id = program.args[0]
+
+var model = Model.getInstance()
+
+model.connect(function(err) {
+  if (err) {
+    throw err
+  }
+
+  model.getMap(id, function(err, map) {
+    if (err) {
+      throw err
+    }
+
+    if (!map) {
+      throw new Error('ID '+id+' doesn\'t exist.')
+    }
+
+    console.log('Start creating Index for ID '+id+'.')
+
+    map.createIndex(program, function(err) {
+      if (err) {
+        throw err
+      }
+
+      console.log('Index for ID '+id+' created.')
+      process.exit(0)
+    })
+  })
+})

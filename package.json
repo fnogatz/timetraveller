@@ -44,6 +44,7 @@
     "mongodb-extended-json": "^1.1.2",
     "morgan": "~1.5.1",
     "mysql": "^2.6.1",
+    "newline-json": "^0.1.1",
     "node-uuid": "^1.4.3",
     "require-all": "^1.0.0",
     "serve-favicon": "~2.2.0",
