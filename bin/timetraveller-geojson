@@ -1,7 +1,0 @@
-#!/usr/bin/env node
-
-var program = require('commander');
-
-program
-  .command('csv', 'Transform CSV into GeoJSON')
-  .parse(process.argv);

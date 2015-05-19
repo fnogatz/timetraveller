@@ -7,5 +7,5 @@ program
   .command('server', 'Run server')
   .command('import', 'Import data')
   .command('create', 'Create map')
-  .command('geojson', 'Transform data')
+  .command('index', 'Create index')
   .parse(process.argv);
