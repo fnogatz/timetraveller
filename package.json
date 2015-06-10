@@ -1,6 +1,6 @@
 {
   "name": "timetraveller",
-  "version": "0.0.1",
+  "version": "0.2.0",
   "description": "Webservice to explore location- and time-based data like GTFS in an interactive way",
   "main": "index.js",
   "bin": "./bin/timetraveller",
