@@ -8,25 +8,24 @@ L.HtmlIcon = L.Icon.extend({
   },
 
   initialize: function (options) {
-    L.Util.setOptions(this, options);
+    L.Util.setOptions(this, options)
   },
 
   createIcon: function () {
-    var div = document.createElement('div');
-    div.innerHTML = this.options.html;
-    return div;
+    var div = document.createElement('div')
+    div.innerHTML = this.options.html
+    return div
   },
 
   createShadow: function () {
-    return null;
+    return null
   }
-});
-
+})
 
 /**
  * TIMETRAVELLER
  */
-function Timetraveller(map) {
+function Timetraveller (map) {
   var self = this
 
   this.map = map
@@ -59,7 +58,7 @@ Timetraveller.speedLevels = [
 
 Timetraveller.updateSpeed = 1000
 
-Timetraveller.prototype.init = function initTimetraveller() {
+Timetraveller.prototype.init = function initTimetraveller () {
   this.initSocket()
   this.registerMapListener()
   this.registerButtons()
@@ -67,7 +66,7 @@ Timetraveller.prototype.init = function initTimetraveller() {
   this._setUpdateTimer()
 }
 
-Timetraveller.prototype._setClock = function _setClock() {
+Timetraveller.prototype._setClock = function _setClock () {
   var self = this
 
   if (this._clock) {
@@ -75,8 +74,8 @@ Timetraveller.prototype._setClock = function _setClock() {
   }
   var duration = Timetraveller.updateSpeed / this._speed
 
-  function setTimer() {
-    self._clock = setTimeout(function() {
+  function setTimer () {
+    self._clock = setTimeout(function () {
       self._timestamp += Timetraveller.updateSpeed
       self.tick()
 
@@ -87,11 +86,11 @@ Timetraveller.prototype._setClock = function _setClock() {
   setTimer()
 }
 
-Timetraveller.prototype._setUpdateTimer = function _setUpdateTimer() {
+Timetraveller.prototype._setUpdateTimer = function _setUpdateTimer () {
   var self = this
 
-  function setTimer() {
-    setTimeout(function() {
+  function setTimer () {
+    setTimeout(function () {
       self.update()
 
       setTimer()
@@ -101,18 +100,18 @@ Timetraveller.prototype._setUpdateTimer = function _setUpdateTimer() {
   setTimer()
 }
 
-Timetraveller.prototype.initSocket = function initSocket() {
+Timetraveller.prototype.initSocket = function initSocket () {
   var self = this
-  this.socket = io.connect(window.location.protocol+'//'+window.location.host)
+  this.socket = io.connect(window.location.protocol + '//' + window.location.host)
 
-  this.socket.on('trajectory_points', function gotTrajectoryPoints(data) {
+  this.socket.on('trajectory_points', function gotTrajectoryPoints (data) {
     if (self.hasMarker(data.id)) {
       return
     }
 
     var points = []
     var durations = []
-    data.points.forEach(function(point, ix) {
+    data.points.forEach(function (point, ix) {
       if (self._slice && point.time < self._timestamp) {
         // use only future points
         return
@@ -123,7 +122,7 @@ Timetraveller.prototype.initSocket = function initSocket() {
         point.coordinates[0]
       ])
       if (ix > 0) {
-        diff = point.time - data.points[ix-1].time
+        diff = point.time - data.points[ix - 1].time
         durations.push(diff)
       }
     })
@@ -144,7 +143,7 @@ Timetraveller.prototype.initSocket = function initSocket() {
   })
 }
 
-Timetraveller.prototype.nextSpeed = function nextSpeed() {
+Timetraveller.prototype.nextSpeed = function nextSpeed () {
   var self = this
   var currentSpeed = self._speed
   var levels = Timetraveller.speedLevels
@@ -155,11 +154,11 @@ Timetraveller.prototype.nextSpeed = function nextSpeed() {
       break
     }
   }
-  i = Math.min(i, levels.length-1)
+  i = Math.min(i, levels.length - 1)
   return levels[i]
 }
 
-Timetraveller.prototype.previousSpeed = function previousSpeed() {
+Timetraveller.prototype.previousSpeed = function previousSpeed () {
   var self = this
   var currentSpeed = self._speed
   var levels = Timetraveller.speedLevels
@@ -174,35 +173,35 @@ Timetraveller.prototype.previousSpeed = function previousSpeed() {
   return levels[i]
 }
 
-Timetraveller.prototype.nextLevel = function nextLevel() {
+Timetraveller.prototype.nextLevel = function nextLevel () {
   var self = this
 
   self.setSpeed(self.nextSpeed())
 }
 
-Timetraveller.prototype.previousLevel = function previousLevel() {
+Timetraveller.prototype.previousLevel = function previousLevel () {
   var self = this
 
   self.setSpeed(self.previousSpeed())
 }
 
-Timetraveller.prototype.hasMarker = function hasMarker(id) {
-  return this.markers.hasOwnProperty(id);
+Timetraveller.prototype.hasMarker = function hasMarker (id) {
+  return this.markers.hasOwnProperty(id)
 }
 
-Timetraveller.prototype.registerMapListener = function registerMapListener() {
+Timetraveller.prototype.registerMapListener = function registerMapListener () {
   var self = this
 
-  this.map.on('zoomend', function() {
+  this.map.on('zoomend', function () {
     self.update()
   })
 
-  this.map.on('moveend', function() {
+  this.map.on('moveend', function () {
     self.update()
   })
 }
 
-Timetraveller.prototype.getBounds = function getBounds() {
+Timetraveller.prototype.getBounds = function getBounds () {
   var bounds = this.map.getBounds()
   return {
     east: bounds.getEast(),
@@ -212,13 +211,13 @@ Timetraveller.prototype.getBounds = function getBounds() {
   }
 }
 
-Timetraveller.prototype.preloadTime = function preloadTime() {
+Timetraveller.prototype.preloadTime = function preloadTime () {
   var self = this
-  var preloadTime = 1000*30 * self._speed // 30 seconds display time
+  var preloadTime = 1000 * 30 * self._speed // 30 seconds display time
   return preloadTime
 }
 
-Timetraveller.prototype.update = function update() {
+Timetraveller.prototype.update = function update () {
   var self = this
 
   var preloadTime = self.preloadTime()
@@ -232,7 +231,7 @@ Timetraveller.prototype.update = function update() {
   })
 }
 
-Timetraveller.prototype.pause = function pause() {
+Timetraveller.prototype.pause = function pause () {
   var markers = this.markers
   for (var id in markers) {
     markers[id].marker.pause()
@@ -242,7 +241,7 @@ Timetraveller.prototype.pause = function pause() {
   clearTimeout(this._clock)
 }
 
-Timetraveller.prototype.resume = function resume() {
+Timetraveller.prototype.resume = function resume () {
   var markers = this.markers
   for (var id in markers) {
     markers[id].marker.resume()
@@ -252,7 +251,7 @@ Timetraveller.prototype.resume = function resume() {
   this._setClock()
 }
 
-Timetraveller.prototype.setSpeed = function setSpeed(speed) {
+Timetraveller.prototype.setSpeed = function setSpeed (speed) {
   var self = this
 
   speed = speed || 1
@@ -268,14 +267,14 @@ Timetraveller.prototype.setSpeed = function setSpeed(speed) {
   this._speed = speed
   this._setClock()
 
-  this._elements.speed.forEach(function(el) {
-    el.innerHTML = 'Speed: '+speed+'x'
+  this._elements.speed.forEach(function (el) {
+    el.innerHTML = 'Speed: ' + speed + 'x'
   })
 
   self.update()
 }
 
-Timetraveller.prototype.setDate = function setDate(date) {
+Timetraveller.prototype.setDate = function setDate (date) {
   if (date instanceof Date) {
     this._timestamp = date.getTime()
   }
@@ -287,11 +286,11 @@ Timetraveller.prototype.setDate = function setDate(date) {
   this.update()
 }
 
-Timetraveller.prototype.start = function start() {
+Timetraveller.prototype.start = function start () {
   this.update()
 }
 
-Timetraveller.prototype.clear = function clear() {
+Timetraveller.prototype.clear = function clear () {
   var self = this
 
   for (var id in self.markers) {
@@ -300,65 +299,64 @@ Timetraveller.prototype.clear = function clear() {
   }
 }
 
-Timetraveller.prototype.registerButtons = function registerButtons() {
+Timetraveller.prototype.registerButtons = function registerButtons () {
   var self = this
 
-  Array.prototype.forEach.call(document.querySelectorAll('.timetraveller-pause'), function(el) {
-    el.addEventListener('click', function() {
+  Array.prototype.forEach.call(document.querySelectorAll('.timetraveller-pause'), function (el) {
+    el.addEventListener('click', function () {
       self.pause()
     })
   })
 
-  Array.prototype.forEach.call(document.querySelectorAll('.timetraveller-play'), function(el) {
-    el.addEventListener('click', function() {
+  Array.prototype.forEach.call(document.querySelectorAll('.timetraveller-play'), function (el) {
+    el.addEventListener('click', function () {
       self.resume()
     })
   })
 
-  Array.prototype.forEach.call(document.querySelectorAll('.timetraveller-slower'), function(el) {
-    el.addEventListener('click', function() {
+  Array.prototype.forEach.call(document.querySelectorAll('.timetraveller-slower'), function (el) {
+    el.addEventListener('click', function () {
       self.previousLevel()
     })
   })
 
-  Array.prototype.forEach.call(document.querySelectorAll('.timetraveller-faster'), function(el) {
-    el.addEventListener('click', function() {
+  Array.prototype.forEach.call(document.querySelectorAll('.timetraveller-faster'), function (el) {
+    el.addEventListener('click', function () {
       self.nextLevel()
     })
   })
 
-  Array.prototype.forEach.call(document.querySelectorAll('.timetraveller-clock'), function(el) {
+  Array.prototype.forEach.call(document.querySelectorAll('.timetraveller-clock'), function (el) {
     self._elements.clock.push(el)
   })
 
-  Array.prototype.forEach.call(document.querySelectorAll('.timetraveller-speed'), function(el) {
+  Array.prototype.forEach.call(document.querySelectorAll('.timetraveller-speed'), function (el) {
     self._elements.speed.push(el)
   })
 }
 
-Timetraveller.prototype.tick = function tick() {
+Timetraveller.prototype.tick = function tick () {
   var self = this
 
-  self._elements.clock.forEach(function(el) {
+  self._elements.clock.forEach(function (el) {
     el.innerHTML = (new Date(self._timestamp)).toString().replace(/ GMT.+$/, '')
-    //el.innerHTML = self._timestamp
+  // el.innerHTML = self._timestamp
   })
 }
 
-Timetraveller.prototype.createMarker = function createMarker(data) {
+Timetraveller.prototype.createMarker = function createMarker (data) {
   var self = this
 
   if (data.entities.route) {
     var css = ''
     if (data.entities.route.color) {
-      css += 'background:#'+data.entities.route.color+';'
-    }
-    else {
+      css += 'background:#' + data.entities.route.color + ';'
+    } else {
       css += 'background:green;'
     }
 
     var icon = new L.HtmlIcon({
-      html: '<div class="icon" style="'+css+'">'+data.entities.route.shortName+'</div>',
+      html: '<div class="icon" style="' + css + '">' + data.entities.route.shortName + '</div>',
     })
 
     var marker = L.Marker.movingMarker(data.points, data.durations, {
@@ -374,10 +372,10 @@ Timetraveller.prototype.createMarker = function createMarker(data) {
   var popupText = this.getPopupText(data)
 
   marker.bindPopup(popupText)
-  
+
   marker.addTo(self.map)
 
-  marker.on('end', function() {
+  marker.on('end', function () {
     self.map.removeLayer(marker)
     delete self.markers[data.id]
   })
@@ -389,16 +387,16 @@ Timetraveller.prototype.createMarker = function createMarker(data) {
   return marker
 }
 
-Timetraveller.prototype.getPopupText = function getPopupText(data) {
+Timetraveller.prototype.getPopupText = function getPopupText (data) {
   if (this.slug.match(/Ulm/)) {
-    var text = '<b>Linie '+data.entities.route.shortName+'</b>'
+    var text = '<b>Linie ' + data.entities.route.shortName + '</b>'
     if (data.entities.route.longName) {
-      text += '<br>'+data.entities.route.longName
+      text += '<br>' + data.entities.route.longName
     }
     return text
   }
   else if (this.slug === 'Peking') {
-    return 'Taxi '+data.id
+    return 'Taxi ' + data.id
   }
   return data.id
 }

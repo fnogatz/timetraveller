@@ -26,7 +26,7 @@ app.use(session({
   resave: true,
   saveUninitialized: true,
   cookie: { maxAge: 60000 }
-}));
+}))
 app.use(flash())
 app.use(express.static(path.join(__dirname, '..', 'public')))
 

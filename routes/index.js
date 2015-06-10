@@ -43,7 +43,7 @@ router.post('/new', function (req, res, next) {
 })
 
 router.get('/m/:slug', function (req, res, next) {
-  model.getMapBySlug(req.params.slug, function(err, map) {
+  model.getMapBySlug(req.params.slug, function (err, map) {
     if (err) {
       // TODO
       return
@@ -59,9 +59,9 @@ router.get('/m/:slug', function (req, res, next) {
         slug: 'Peking'
       }
     ]
-    maps.forEach(function(map) {
+    maps.forEach(function (map) {
       if (map.slug === req.params.slug) {
-        map.active = true;
+        map.active = true
       }
     })
 
@@ -78,9 +78,9 @@ router.get('/m/:slug', function (req, res, next) {
  * @param  {Array} arr  Return of express-validator
  * @return {Object}
  */
-function formErrors(arr) {
+function formErrors (arr) {
   var res = {}
-  arr.forEach(function(err) {
+  arr.forEach(function (err) {
     if (!res.hasOwnProperty(err.param)) {
       res[err.param] = []
     }
@@ -89,16 +89,12 @@ function formErrors(arr) {
   return res
 }
 
-
 /*
 router.get('/map/:dataset', function (req, res, next) {
   res.render('map', {
     title: 'Map'
   })
 })
-
-
-
 
 router.get('/:database', function (req, res, next) {
   res.render('map', {
@@ -107,6 +103,5 @@ router.get('/:database', function (req, res, next) {
 })
 
 */
-
 
 module.exports = router
