@@ -1,32 +1,56 @@
 # Timetraveller
 
-__Disclaimer: Currently only the GTFS import for MongoDB is working. The webserver is still very low-level :)__
-
 Webservice to explore location- and time-based data like GTFS in an interactive way.
 
+## Installation
 
-## Requirements
-
-* MongoDB >= 2.4
-
-
-## Usage
-
-Adapt the config file first:
-
-```
-cp config.json.example config.json
-edit config.json
+```shell
+git clone https://github.com/fnogatz/timetraveller.git
+cd timetraveller
+npm install
 ```
 
-### Import data
+## Maps
 
-```
-timetraveller import gtfs /path/to/gtfs/dir
+The available maps are configured by YAML files in the `/maps` directory. Simply copy the provided `example.yml` and change it to fit your needs.
+
+### Creation
+
+Create a new YAML file in the `/maps` directory. The filename will be map's identifier. That means if you save a `my-map.yml`, this map will be accessable as `http://domain.tld/my-map`.
+
+The following options are supported:
+
+```yaml
+map:
+  # name gets displayed in the header
+  name: Some short name
+  # default center of the map
+  center: [ 48.400833333333, 9.9872222222222 ]
+  # default zoom level
+  zoom: 13
+
+# You have to specify a model connector that handles
+#   the geospatial queries. See below for a list of
+#   available connectors.
+connector:
+  # require-able path
+  path: example-connector
 ```
 
-### Webserver
+## Server
 
+You can start the webserver by calling:
+
+```shell
+npm start
 ```
-timetraveller server
-```
+
+## Model Connectors
+
+This is a list of currently implemented connectors.
+
+- [timetraveller-mongodb](https://github.com/fnogatz/timetraveller-mongodb): Connector for MongoDB
+
+### Write your own
+
+[TODO]

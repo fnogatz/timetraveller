@@ -45,7 +45,7 @@
       </div>
     </nav>
 
-    <div id="map" data-id="<%= map.id %>" data-slug="<%= map.slug %>"></div>
+    <div id="map" data-id="<%= map.id %>"></div>
 
     <nav class="navbar navbar-default navbar-fixed-bottom">
       <div class="container">
@@ -66,6 +66,9 @@
     <script type="text/javascript">
     var tiles = <%-
       JSON.stringify(map.tiles)
+    %>
+    var mapData = <%-
+      JSON.stringify(map.data)
     %>
     </script>
 
