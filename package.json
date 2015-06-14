@@ -1,7 +1,7 @@
 {
   "name": "timetraveller",
   "version": "1.0.0",
-  "description": "Webservice to explore location- and time-based data like GTFS in an interactive way",
+  "description": "Webservice to explore spatio-temporal data in an interactive way",
   "main": "index.js",
   "scripts": {
     "test": "npm run standard",
