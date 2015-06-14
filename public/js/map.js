@@ -24,7 +24,11 @@ tileLayers[Object.keys(tileLayers)[0]].addTo(map)
 // Add tile layer control
 L.control.layers(tileLayers).addTo(map)
 
+var options = {
+  startTime: TimetravellerOptions.map.startTime || new Date()
+}
+
 // Initialize Timetraveller
-var timetraveller = new Timetraveller(map, document.getElementById('timeline'), TimetravellerOptions)
+var timetraveller = new Timetraveller(map, document.getElementById('timeline'), options)
 timetraveller.init()
 timetraveller.start()
