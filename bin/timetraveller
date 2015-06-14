@@ -1,8 +1,0 @@
-#!/usr/bin/env node
-
-var program = require('commander');
-
-program
-  .version(require('../package.json').version)
-  .command('server', 'Run server')
-  .parse(process.argv);

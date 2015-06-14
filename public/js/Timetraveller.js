@@ -1,151 +1,197 @@
-L.HtmlIcon = L.Icon.extend({
-  options: {
-    /*
-    html: (String) (required)
-    iconAnchor: (Point)
-    popupAnchor: (Point)
-    */
-  },
-
-  initialize: function (options) {
-    L.Util.setOptions(this, options)
-  },
-
-  createIcon: function () {
-    var div = document.createElement('div')
-    div.innerHTML = this.options.html
-    return div
-  },
-
-  createShadow: function () {
-    return null
-  }
-})
-
 /**
  * TIMETRAVELLER
  */
-function Timetraveller (map) {
+function Timetraveller (map, timeline, options) {
   var self = this
 
   this.map = map
   this.id = document.getElementById('map').dataset.id
   this.slug = document.getElementById('map').dataset.slug
   this.markers = {}
-  this._speed = 1
-  this.paused = false
-  this._timestamp = Date.now()
   this._elements = {
     clock: [],
-    speed: []
+    speed: [],
+    play: [],
+    stop: []
   }
-  this._clock = null
-  this._slice = true
+  this._options = options || {}
+
+  this._timeline = timeline
 }
 
 Timetraveller.speedLevels = [
-  0.1,
-  0.2,
+  0.25,
   0.5,
   1,
   2,
   5,
   10,
-  20,
-  60,
-  100
+  30,
+  60
 ]
 
-Timetraveller.updateSpeed = 1000
+Timetraveller.tickLen = 250
 
 Timetraveller.prototype.init = function initTimetraveller () {
   this.initSocket()
   this.registerMapListener()
   this.registerButtons()
-  this._setClock()
+  this._setPlayback()
+  this._setTimeline()
   this._setUpdateTimer()
 }
 
-Timetraveller.prototype._setClock = function _setClock () {
+Timetraveller.prototype._setPlayback = function _setPlayback () {
+  var self = this
+  var playback
+
+  var playbackOptions = {
+    playControl: false,
+    dateControl: false,
+    sliderControl: false,
+    tracksLayer: false,
+    tickLen: Timetraveller.tickLen,
+    marker: self.createMarker.bind(self),
+    hideInactive: true
+  }
+
+  var time = new Date().getTime()
+  if (self._options.hasOwnProperty('startTime')) {
+    time = new Date(self._options.startTime).getTime()
+  }
+
+  playback = new L.Playback(this.map, null, onPlaybackTimeChange, playbackOptions)
+  playback.setSpeed(1)
+  playback.setCursor(time)
+  this.resetClockText(time)
+  this.resetTimelineRange()
+
+  playback.addCallback(self.resetClockText.bind(self))
+
+  this.playback = playback
+
+  function onPlaybackTimeChange (ms) {
+    if (self.timeline) {
+      self.timeline.moveTo(ms, { animate: false })
+    }
+  }
+}
+
+Timetraveller.prototype._setTimeline = function _setTimeline () {
   var self = this
 
-  if (this._clock) {
-    clearTimeout(this._clock)
-  }
-  var duration = Timetraveller.updateSpeed / this._speed
-
-  function setTimer () {
-    self._clock = setTimeout(function () {
-      self._timestamp += Timetraveller.updateSpeed
-      self.tick()
-
-      setTimer()
-    }, duration)
+  if (!self._timeline) {
+    return
   }
 
-  setTimer()
+  var timelineOptions = {
+    width: '100%',
+    height: '50px',
+    style: 'box',
+    axisOnTop: false,
+    showCustomTime: false,
+    showCurrentTime: false,
+    orientation: 'top',
+    zoomable: false
+  }
+
+  // Setup timeline
+  var timeline = new vis.Timeline(self._timeline, null, timelineOptions)
+
+  timeline.on('rangechange', function (range) {
+    if (range.byUser) {
+      var center = (range.end.getTime() - range.start.getTime()) / 2 + range.start.getTime()
+
+      self.playback.setCursor(center)
+    }
+  })
+
+  timeline.on('rangechanged', function (props) {
+    if (props.byUser) {
+      self.update()
+    }
+  })
+
+  self.timeline = timeline
+
+  self.resetTimelineRange()
+}
+
+Timetraveller.prototype.resetTimelineRange = function resetTimelineRange () {
+  var self = this
+
+  if (!self.timeline) {
+    return
+  }
+
+  var preloadTime = self.preloadTime()
+  var currentTime = self.playback.getTime()
+  self.timeline.setWindow(
+    currentTime - preloadTime,
+    currentTime + preloadTime
+  )
+}
+
+Timetraveller.prototype.resetClockText = function resetClockText (ms) {
+  var self = this
+
+  ms = ms || self.playback.getTime()
+
+  self._elements.clock.forEach(function (el) {
+    el.innerHTML = (new Date(ms)).toString().replace(/ GMT.+$/, '')
+  })
 }
 
 Timetraveller.prototype._setUpdateTimer = function _setUpdateTimer () {
   var self = this
 
-  function setTimer () {
-    setTimeout(function () {
-      self.update()
-
-      setTimer()
-    }, 20000)
+  if (self._updateTimer) {
+    return
   }
 
-  setTimer()
+  var preloadTime = self.preloadTime()
+
+  self._updateTimer = setInterval(function () {
+    console.log('Trigger update by timer')
+
+    self.update()
+  }, preloadTime)
+}
+
+Timetraveller.prototype._clearUpdateTimer = function _clearUpdateTimer () {
+  var self = this
+
+  clearInterval(self._updateTimer)
+  self._updateTimer = null
 }
 
 Timetraveller.prototype.initSocket = function initSocket () {
   var self = this
   this.socket = io.connect(window.location.protocol + '//' + window.location.host)
 
-  this.socket.on('trajectory_points', function gotTrajectoryPoints (data) {
-    if (self.hasMarker(data.id)) {
+  this.socket.on('trajectory', function (trajectory) {
+    if (self.hasMarker(trajectory._id)) {
       return
     }
 
-    var points = []
-    var durations = []
-    data.points.forEach(function (point, ix) {
-      if (self._slice && point.time < self._timestamp) {
-        // use only future points
-        return
-      }
+    self.markers[trajectory._id] = true
 
-      points.push([
-        point.coordinates[1],
-        point.coordinates[0]
-      ])
-      if (ix > 0) {
-        diff = point.time - data.points[ix - 1].time
-        durations.push(diff)
-      }
-    })
+    trajectory.geometry.type = 'MultiPoint'
+    self.playback.addData(trajectory)
 
-    var markerData = {
-      entities: data.entities,
-      id: data.id,
-      points: points,
-      durations: durations
+    if (!self.playback.isPlaying()) {
+      // To move the vehicle to the current position
+      self.playback.setCursor(self.playback.getTime())
+      self.resetTimelineRange()
     }
 
-    var marker = self.createMarker(markerData)
-
-    self.markers[markerData.id] = {
-      marker: marker,
-      data: markerData
-    }
+    console.log('Added Traj:', trajectory._id)
   })
 }
 
 Timetraveller.prototype.nextSpeed = function nextSpeed () {
   var self = this
-  var currentSpeed = self._speed
+  var currentSpeed = self.playback.getSpeed()
   var levels = Timetraveller.speedLevels
 
   var i
@@ -160,7 +206,7 @@ Timetraveller.prototype.nextSpeed = function nextSpeed () {
 
 Timetraveller.prototype.previousSpeed = function previousSpeed () {
   var self = this
-  var currentSpeed = self._speed
+  var currentSpeed = self.playback.getSpeed()
   var levels = Timetraveller.speedLevels
 
   var i
@@ -173,13 +219,13 @@ Timetraveller.prototype.previousSpeed = function previousSpeed () {
   return levels[i]
 }
 
-Timetraveller.prototype.nextLevel = function nextLevel () {
+Timetraveller.prototype.nextSpeedLevel = function nextSpeedLevel () {
   var self = this
 
   self.setSpeed(self.nextSpeed())
 }
 
-Timetraveller.prototype.previousLevel = function previousLevel () {
+Timetraveller.prototype.previousSpeedLevel = function previousSpeedLevel () {
   var self = this
 
   self.setSpeed(self.previousSpeed())
@@ -192,11 +238,11 @@ Timetraveller.prototype.hasMarker = function hasMarker (id) {
 Timetraveller.prototype.registerMapListener = function registerMapListener () {
   var self = this
 
-  this.map.on('zoomend', function () {
+  self.map.on('zoomend', function () {
     self.update()
   })
 
-  this.map.on('moveend', function () {
+  self.map.on('moveend', function () {
     self.update()
   })
 }
@@ -213,42 +259,61 @@ Timetraveller.prototype.getBounds = function getBounds () {
 
 Timetraveller.prototype.preloadTime = function preloadTime () {
   var self = this
-  var preloadTime = 1000 * 30 * self._speed // 30 seconds display time
+  var preloadTime = 1000 * 30 * self.playback.getSpeed()
   return preloadTime
 }
 
 Timetraveller.prototype.update = function update () {
   var self = this
 
+  self._clearUpdateTimer()
+
   var preloadTime = self.preloadTime()
 
+  console.log('Request trajectories')
   self.socket.emit('get_trajectory_points', {
     id: this.id,
     bounds: self.getBounds(),
-    from: self._timestamp,
-    to: self._timestamp + preloadTime,
-    speed: self._speed
+    from: self.playback.getTime() - preloadTime,
+    to: self.playback.getTime() + preloadTime,
+    speed: self.playback.getSpeed()
+  })
+
+  if (self.playback.isPlaying()) {
+    self._setUpdateTimer()
+  }
+}
+
+Timetraveller.prototype.stop = function stop () {
+  var self = this
+
+  self.playback.stop()
+
+  if (self._updateTimer) {
+    self._clearUpdateTimer()
+  }
+
+  self._elements.stop.forEach(function (el) {
+    el.className = el.className + ' active'
+  })
+  self._elements.play.forEach(function (el) {
+    el.className = el.className.replace(/\bactive\b/g, '')
   })
 }
 
-Timetraveller.prototype.pause = function pause () {
-  var markers = this.markers
-  for (var id in markers) {
-    markers[id].marker.pause()
-  }
+Timetraveller.prototype.play = function play () {
+  var self = this
 
-  this.paused = true
-  clearTimeout(this._clock)
-}
+  self.playback.start()
 
-Timetraveller.prototype.resume = function resume () {
-  var markers = this.markers
-  for (var id in markers) {
-    markers[id].marker.resume()
-  }
+  self._elements.play.forEach(function (el) {
+    el.className = el.className + ' active'
+  })
+  self._elements.stop.forEach(function (el) {
+    el.className = el.className.replace(/\bactive\b/g, '')
+  })
 
-  this.paused = false
-  this._setClock()
+  self._setUpdateTimer()
 }
 
 Timetraveller.prototype.setSpeed = function setSpeed (speed) {
@@ -256,73 +321,69 @@ Timetraveller.prototype.setSpeed = function setSpeed (speed) {
 
   speed = speed || 1
 
-  if (speed === this._speed) {
+  if (speed === self.playback.getSpeed()) {
     return
   }
 
-  for (var id in this.markers) {
-    this.markers[id].marker.setSpeed(speed)
-  }
+  self.playback.setSpeed(speed)
+  self.playback._tickLen = Math.max(Math.round(Timetraveller.tickLen * speed), Timetraveller.tickLen)
 
-  this._speed = speed
-  this._setClock()
+  self.resetTimelineRange()
+
+  self.update()
 
   this._elements.speed.forEach(function (el) {
     el.innerHTML = 'Speed: ' + speed + 'x'
   })
-
-  self.update()
 }
 
 Timetraveller.prototype.setDate = function setDate (date) {
+  var self = this
+
+  var ms
   if (date instanceof Date) {
-    this._timestamp = date.getTime()
+    ms = date.getTime()
   }
   else if (typeof date === 'number') {
-    this._timestamp = date
+    ms = date
   }
 
-  this.clear()
-  this.update()
+  self.playback.setCursor(ms)
+  self.update()
 }
 
 Timetraveller.prototype.start = function start () {
   this.update()
-}
 
-Timetraveller.prototype.clear = function clear () {
-  var self = this
-
-  for (var id in self.markers) {
-    self.map.removeLayer(self.markers[id].marker)
-    delete self.markers[id]
-  }
+// this.play()
 }
 
 Timetraveller.prototype.registerButtons = function registerButtons () {
   var self = this
 
-  Array.prototype.forEach.call(document.querySelectorAll('.timetraveller-pause'), function (el) {
+  Array.prototype.forEach.call(document.querySelectorAll('.timetraveller-stop'), function (el) {
     el.addEventListener('click', function () {
-      self.pause()
+      self.stop()
     })
+    self._elements.stop.push(el)
   })
 
   Array.prototype.forEach.call(document.querySelectorAll('.timetraveller-play'), function (el) {
     el.addEventListener('click', function () {
-      self.resume()
+      self.play()
     })
+    self._elements.play.push(el)
   })
 
   Array.prototype.forEach.call(document.querySelectorAll('.timetraveller-slower'), function (el) {
     el.addEventListener('click', function () {
-      self.previousLevel()
+      self.previousSpeedLevel()
     })
   })
 
   Array.prototype.forEach.call(document.querySelectorAll('.timetraveller-faster'), function (el) {
     el.addEventListener('click', function () {
-      self.nextLevel()
+      self.nextSpeedLevel()
     })
   })
 
@@ -335,68 +396,32 @@ Timetraveller.prototype.registerButtons = function registerButtons () {
   })
 }
 
-Timetraveller.prototype.tick = function tick () {
-  var self = this
-
-  self._elements.clock.forEach(function (el) {
-    el.innerHTML = (new Date(self._timestamp)).toString().replace(/ GMT.+$/, '')
-  // el.innerHTML = self._timestamp
-  })
-}
-
 Timetraveller.prototype.createMarker = function createMarker (data) {
   var self = this
+  var marker = {}
 
-  if (data.entities.route) {
+  if (data.properties.trip && data.properties.trip.route) {
+    var route = data.properties.trip.route
+
     var css = ''
-    if (data.entities.route.color) {
-      css += 'background:#' + data.entities.route.color + ';'
+    if (route.color) {
+      css += 'background-color:#' + route.color + ';'
     } else {
-      css += 'background:green;'
+      css += 'background-color:green;'
     }
 
-    var icon = new L.HtmlIcon({
-      html: '<div class="icon" style="' + css + '">' + data.entities.route.shortName + '</div>',
+    marker.icon = new L.HtmlIcon({
+      html: '<div class="icon" style="' + css + '">' + route.shortName + '</div>',
     })
 
-    var marker = L.Marker.movingMarker(data.points, data.durations, {
-      speed: self._speed,
-      icon: icon
-    })
+    marker.getPopup = function (pos) {
+      return route.longName
+    }
   } else {
-    var marker = L.Marker.movingMarker(data.points, data.durations, {
-      speed: self._speed
+    marker.icon = new L.HtmlIcon({
+      html: '<div class="icon" style="background-color:#4078C0"></div>'
     })
-  }
-
-  var popupText = this.getPopupText(data)
-
-  marker.bindPopup(popupText)
-
-  marker.addTo(self.map)
-
-  marker.on('end', function () {
-    self.map.removeLayer(marker)
-    delete self.markers[data.id]
-  })
-
-  if (this.paused === false) {
-    marker.start()
   }
 
   return marker
-}
-
-Timetraveller.prototype.getPopupText = function getPopupText (data) {
-  if (this.slug.match(/Ulm/)) {
-    var text = '<b>Linie ' + data.entities.route.shortName + '</b>'
-    if (data.entities.route.longName) {
-      text += '<br>' + data.entities.route.longName
-    }
-    return text
-  }
-  else if (this.slug === 'Peking') {
-    return 'Taxi ' + data.id
-  }
-  return data.id
 }

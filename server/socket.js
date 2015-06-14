@@ -4,7 +4,6 @@ var maps = require('./maps')
 
 function onConnection (socket) {
   socket.on('get_trajectory_points', function (data) {
-    var slice = true
     data.speed = data.speed || 1
 
     var query = {
@@ -18,33 +17,14 @@ function onConnection (socket) {
     var model = maps[data.id]._connector
 
     // find trajectories
-console.log('SEND QUERY')
     model.findTrajectories(query, function (trajectory) {
-      console.log('TRAJ FOUND')
-
-      var points = []
-
-      trajectory.points.forEach(function (point, ix) {
-        if (slice && point.time < query.time.start) {
-          // return only future points
-          return
-        }
-
-        points.push({
-          coordinates: point.coordinates,
-          time: point.time.getTime()
-        })
-      })
-
-      socket.emit('trajectory_points', {
-        id: trajectory.id,
-        points: points,
-        entities: trajectory.entities
-      })
+      socket.emit('trajectory', trajectory)
+    }, function () {
+      // no-op
     })
   })
 
-  socket.on('error', function(err) {
+  socket.on('error', function (err) {
     console.error(err)
   })
 }

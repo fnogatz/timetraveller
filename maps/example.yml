@@ -1,0 +1,22 @@
+map:
+  # Name of your map
+  name: Some Example
+  # initial center of the map
+  center: [ 48.400833333333, 9.9872222222222 ]
+  # initial zoom
+  zoom: 16
+  # initial date
+  #   omit to use current time
+  date: 2015-06-11 08:00
+
+connector:
+  # require-able connector
+  path: timetraveller-mongodb
+  # this `connector` object will be used as
+  #   the first parameter, so you can specify
+  #   connector options here
+  db: 
+    database: timetraveller_SomeExample
+
+# omit or set to false to show in menu
+inactive: true

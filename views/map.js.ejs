@@ -1,0 +1,11 @@
+var TimetravellerOptions = {
+  map: {
+    tiles: <%- JSON.stringify(map.tiles, false, 2) %>,
+    minZoom: <%- map.minZoom || 'undefined' %>,
+    center: <%- JSON.stringify(map.center) %>,
+    zoom: <%- map.zoom %>
+  }
+}
+<% if (startTime !== null) { %>
+  TimetravellerOptions.map.startTime = <%- !isNaN(startTime) ? startTime : '"'+startTime+'"' %>
+<% } %>

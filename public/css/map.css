@@ -21,3 +21,46 @@ html, body {
   vertical-align: center;
   transform: translate(-50%, -50%);
 }
+
+.navbar-nav>li>p {
+  padding: 15px;
+  line-height: 20px;
+  color: #fff;
+  margin: 0;
+}
+    
+#timeline { 
+  height: 50px; 
+  overflow: hidden;
+  padding-left: 60px;
+}
+
+#centermarker {
+  height: 100%;
+  /*background-color: #6E94FF;*/
+  background-color: #fff;
+  width: 1px;
+  z-index: 1;
+  margin-left: auto;
+  margin-right: auto;
+  left: 0;
+  right: 0;
+}
+
+.vis.timeline.root.top {
+  top: -50px;
+  border: none;
+}
+.vis.timeline .timeaxis .text {
+  color: #fff;
+}
+.vispanel.background .timeaxis.background {
+  /*background-color: #97310e;*/
+}
+.vis.timeline .vispanel.top {
+  border: none;
+}
+
+.vispanel.center, .vispanel.background.horizontal {
+  display: none;
+}

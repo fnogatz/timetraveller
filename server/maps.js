@@ -7,6 +7,10 @@ maps._list = []
 var options
 var Model
 for (var id in maps) {
+  if (maps[id].inactive || id === '_list') {
+    continue
+  }
+
   if (maps[id].connector && maps[id].connector.path) {
     options = maps[id].connector
     options.id = id
@@ -17,7 +21,7 @@ for (var id in maps) {
   }
 
   maps._list.push({
-    name: maps[id].name,
+    name: maps[id].map.name,
     id: id
   })
 }
