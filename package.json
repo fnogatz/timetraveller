@@ -1,6 +1,6 @@
 {
   "name": "timetraveller",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Webservice to explore spatio-temporal data in an interactive way",
   "main": "index.js",
   "scripts": {
@@ -14,8 +14,10 @@
   "keywords": [
     "transportation",
     "GTFS",
+    "gtfs",
     "zeitpunkt",
-    "GeoJSON"
+    "GeoJSON",
+    "geojson"
   ],
   "author": "Falco Nogatz <fnogatz@gmail.com>",
   "license": "MIT",
