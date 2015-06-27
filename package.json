@@ -1,6 +1,6 @@
 {
   "name": "timetraveller",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Webservice to explore spatio-temporal data in an interactive way",
   "main": "index.js",
   "scripts": {
