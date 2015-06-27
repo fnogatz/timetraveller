@@ -59,3 +59,7 @@ connector.findTrajectories(query)
 ```
 
 Have a look at [timetraveller-mongodb](https://github.com/fnogatz/timetraveller-mongodb) for a working connector example.
+
+## Background
+
+Timetraveller and its related tools [timetraveller-mongodb](https://github.com/fnogatz/timetraveller-mongodb) (data storage), [zeitpunkt](https://github.com/fnogatz/zeitpunkt) (GeoJSON simplification) and [transportation](https://github.com/fnogatz/transportation) (GTFS parsing) were realized as a project as part of the Masters programme in Computer Science at the University of Ulm, Germany. The project report with additional information about its architecture is available online at https://fnogatz.github.io/paper-now-timetraveller/.
