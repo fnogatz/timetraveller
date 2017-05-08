@@ -1,5 +1,7 @@
 # Timetraveller
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/fnogatz/timetraveller.svg)](https://greenkeeper.io/)
+
 Webservice to explore spatio-temporal data in an interactive way.
 
 ![Screenshot](screenshot.png)
